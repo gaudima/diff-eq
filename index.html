@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<style type="text/css">
+html, body {
+  width:  100%;
+  height: 100%;
+  margin: 0px;
+  font-family: arial;
+}
+#config_form {
+	float: right;
+	margin-right: 10px;
+	margin-top: 10px;
+}
+#config_form input {
+	margin-bottom: 4px;
+}
+</style>
+
+<script type="text/javascript" src="math.js"></script>
+<script type="text/javascript">
+	function newSys(f1, f2, y1, y2, a, b, h, method) {
+	    var sys = {};
+	    sys.f1 = function(x, y1, y2) {
+	    	return math.eval(f1, {x: x, y1: y1, y2: y2});
+	    }
+	    sys.f1Color = "#FF0000"
+	    sys.f2 = function(x, y1, y2) {
+	    	return math.eval(f2, {x: x, y1: y1, y2: y2});
+	    }
+	    sys.f2Color = "#00FF00"
+	    sys.y1 = y1;
+	    sys.y2 = y2;
+	    sys.a = a;
+	    sys.b = b;
+	    sys.h = h
+	    sys.method = method;
+	    sys.n = math.eval("(b - a) / h", {a: a, b: b, h: h});
+	    return sys;
+	}
+
+	function euler(sys) {
+		var x = [sys.a];
+	    var y1 = [sys.y1];
+	    var y2 = [sys.y2];
+		for(var i = 1; i <= sys.n; i++) {
+	        x[i] = math.eval("x + h", {x: x[i - 1], h: sys.h});
+	        y1[i] = math.eval("y1 + h * f", {y1: y1[i - 1], h: sys.h, f: sys.f1(x[i - 1], y1[i - 1], y2[i - 1])});
+	        y2[i] = math.eval("y2 + h * f", {y2: y2[i - 1], h: sys.h, f: sys.f2(x[i - 1], y1[i - 1], y2[i - 1])});
+	        console.log(x[i], y1[i], y2[i]);
+	    }
+	    return {x, y1, y2};
+	}
+
+	function rgk(sys) {
+		var x = [sys.a];
+	    var y1 = [sys.y1];
+	    var y2 = [sys.y2];
+	    var k1;
+	    var k2;
+	    var k3;
+	    var k4;
+		for(var i = 1; i <= sys.n; i++) {
+	        x[i] = math.eval("x + h", {x: x[i - 1], h: sys.h});
+	        k1 = sys.f1(x[i - 1], y1[i - 1], y2[i - 1]);
+	        k2 = sys.f1(math.eval("x + h / 2", {x: x[i - 1], h: sys.h}),
+	        	        math.eval("y + h * k / 2", {y: y1[i - 1], h: sys.h, k: k1}),
+	        	        math.eval("y + h * k / 2", {y: y2[i - 1], h: sys.h, k: k1}));
+	        k3 = sys.f1(math.eval("x + h / 2", {x: x[i - 1], h: sys.h}),
+	        	        math.eval("y + h * k / 2", {y: y1[i - 1], h: sys.h, k: k2}),
+	        	        math.eval("y + h * k / 2", {y: y2[i - 1], h: sys.h, k: k2}));
+	        k4 = sys.f1(math.eval("x + h", {x: x[i - 1], h: sys.h}),
+	        	        math.eval("y + h * k", {y: y1[i - 1], h: sys.h, k: k3}),
+	        	        math.eval("y + h * k", {y: y2[i - 1], h: sys.h, k: k3}));
+
+	        y1[i] = math.eval("y + h / 6 * (k1 + 2* k2 + 2 * k3 + k4)", {y: y1[i-1], h: sys.h, k1: k1, k2: k2, k3: k3, k4: k4});
+
+	        k1 = sys.f2(x[i - 1], y1[i - 1], y2[i - 1]);
+	        k2 = sys.f2(math.eval("x + h / 2", {x: x[i - 1], h: sys.h}),
+	        	        math.eval("y + h * k / 2", {y: y1[i - 1], h: sys.h, k: k1}),
+	        	        math.eval("y + h * k / 2", {y: y2[i - 1], h: sys.h, k: k1}));
+	        k3 = sys.f2(math.eval("x + h / 2", {x: x[i - 1], h: sys.h}),
+	        	        math.eval("y + h * k / 2", {y: y1[i - 1], h: sys.h, k: k2}),
+	        	        math.eval("y + h * k / 2", {y: y2[i - 1], h: sys.h, k: k2}));
+	        k4 = sys.f2(math.eval("x + h", {x: x[i - 1], h: sys.h}),
+	        	        math.eval("y + h * k", {y: y1[i - 1], h: sys.h, k: k3}),
+	        	        math.eval("y + h * k", {y: y2[i - 1], h: sys.h, k: k3}));
+
+	        y2[i] = math.eval("y + h / 6 * (k1 + 2* k2 + 2 * k3 + k4)", {y: y2[i-1], h: sys.h, k1: k1, k2: k2, k3: k3, k4: k4});
+	        console.log(x[i], y1[i], y2[i]);
+	    }
+	    return {x, y1, y2};
+	}
+
+	function drawSysGraph(sys, ctx) {
+		ctx.canvas.width  = window.innerHeight - 40;
+  		ctx.canvas.height = window.innerHeight - 20;
+	    
+	    var res;
+	    if(sys.method == "euler") {
+	    	res = euler(sys)
+	    } else {
+	    	res = rgk(sys);
+	    }
+
+	    var x = res.x;
+	    var y1 = res.y1;
+	    var y2 = res.y2;
+
+	    var maxY = Math.max(Math.max.apply(null, y1), Math.max.apply(null, y2));
+	    var minY = Math.min(Math.min.apply(null, y1), Math.min.apply(null, y2));
+
+	    var scaleY = (ctx.canvas.height - 20) / (maxY - minY);
+	    var scaleX = (ctx.canvas.width - 40)/ (sys.b - sys.a);
+	    var scale = Math.min(scaleX, scaleY);
+
+	    ctx.translate(-sys.a * scale + 40, maxY * scale + 20);
+	    ctx.strokeStyle = "#000000";
+	    ctx.beginPath();
+	    ctx.moveTo(sys.a * scale, -maxY * scale);
+	    ctx.lineTo(sys.a * scale, -minY * scale);
+	    ctx.stroke();
+	    ctx.beginPath();
+	    ctx.moveTo(sys.a * scale, -minY * scale);
+	    ctx.lineTo(sys.b * scale, -minY * scale);
+	    ctx.stroke();
+	    ctx.font = "8px Arial"
+	    ctx.fillStyle = "#000000";
+	    for(var i = 0; i <= sys.n; i++) {
+	    	ctx.beginPath()
+	    	ctx.moveTo(x[i] * scale, -minY * scale);
+	    	ctx.lineTo(x[i] * scale, -minY * scale - 5);
+	    	ctx.stroke();
+	    	ctx.textAlign = "center";
+	    	ctx.fillText(x[i].toFixed(2), x[i] * scale, -minY * scale + 10);
+	    }
+	    for(var i = minY; i <= maxY; i += sys.h) {
+	    	ctx.beginPath()
+	    	ctx.moveTo(sys.a * scale, -i * scale);
+	    	ctx.lineTo(sys.a * scale + 5, -i * scale);
+	    	ctx.stroke();
+	    	ctx.textAlign = "right";
+	    	ctx.fillText(i.toFixed(2), sys.a * scale - 10, -i * scale + 3);
+	    }
+	    for(var i = 1; i <= sys.n; i++) {
+	    	ctx.strokeStyle = sys.f1Color;
+	        ctx.beginPath();
+	        ctx.moveTo(x[i - 1] * scale, -y1[i - 1] * scale);
+	        ctx.lineTo(x[i] * scale, -y1[i] * scale);
+	        ctx.stroke();
+	        ctx.strokeStyle = sys.f2Color;
+	        ctx.beginPath();
+	        ctx.moveTo(x[i - 1] * scale, -y2[i - 1] * scale);
+	        ctx.lineTo(x[i] * scale, -y2[i] * scale);
+	        ctx.stroke();
+	    }
+	}
+
+	function solve() {
+		console.log("solve");
+		var graph = document.getElementById("graph");
+		var config_form = document.getElementById("config_form");
+		var ctx = graph.getContext("2d");
+		var method = "euler";
+		for(var i = 0; i < config_form.method.length; i++) {
+			if(config_form.method[i].checked) {
+				method = config_form.method[i].value;
+			}
+		}
+		console.log(config_form.f1.value, config_form.f2.value, +config_form.y1.value, +config_form.y2.value, +config_form.a.value, +config_form.b.value, method);
+		var sys = newSys(config_form.f1.value, config_form.f2.value, +config_form.y1.value, +config_form.y2.value, +config_form.a.value, +config_form.b.value, 0.1, method);
+		drawSysGraph(sys, ctx);
+	}
+</script>
+
+<head>
+	<title>Differential Equations: episode 5</title>
+</head>
+
+<body>
+<canvas id="graph"></canvas>
+
+<form id="config_form">
+	<fieldset>
+		<legend>Options:</legend>
+		y1&#39; =<br>
+		<input type="text" name="f1" value="y2"><br>
+		y2&#39; =<br>
+		<input type="text" name="f2" value="e^(-x*y1)"><br>
+		y1(a) =<br>
+		<input type="text" name="y1" value="0"><br>
+		y2(a) =<br>
+		<input type="text" name="y2" value="0"><br>
+		a =<br>
+		<input type="text" name="a" value="0"><br>
+		b =<br>
+		<input type="text" name="b" value="3">
+		<fieldset>
+			<legend>Solve method:</legend>
+			<input type="radio" name="method" value="euler" checked>Euler<br>
+			<input type="radio" name="method" value="rgk">Runge-Kutta
+		</fieldset><br>
+		<input type="button" value="Solve" onclick="solve()">
+	</fieldset>
+</form>
+</body>
+</html>
