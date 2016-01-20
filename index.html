@@ -148,8 +148,8 @@ html, body {
 	    for(var i = 1; i <= sys.n; i++) {
 	    	ctx.strokeStyle = sys.f1Color;
 	        ctx.beginPath();
-	        ctx.moveTo(y2[i - 1] * scale, -y1[i - 1] * scale);
-	        ctx.lineTo(y2[i] * scale, -y1[i] * scale);
+	        ctx.moveTo(y1[i - 1] * scale, -y2[i - 1] * scale);
+	        ctx.lineTo(y1[i] * scale, -y2[i] * scale);
 	        ctx.stroke();
 	    }
 	}
