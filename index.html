@@ -107,51 +107,49 @@ html, body {
 	    var y1 = res.y1;
 	    var y2 = res.y2;
 
-	    var maxY = Math.max(Math.max.apply(null, y1), Math.max.apply(null, y2));
-	    var minY = Math.min(Math.min.apply(null, y1), Math.min.apply(null, y2));
+	    var maxY1 = Math.max.apply(null, y1);
+	    var minY1 = Math.min.apply(null, y1);
 
-	    var scaleY = (ctx.canvas.height - 20) / (maxY - minY);
-	    var scaleX = (ctx.canvas.width - 40)/ (sys.b - sys.a);
+            var maxY2 = Math.max.apply(null, y2);
+	    var minY2 = Math.min.apply(null, y2);
+
+	    var scaleY = (ctx.canvas.height - 20) / (maxY2 - minY2);
+	    var scaleX = (ctx.canvas.width - 40)/ (maxY1 - minY1);
 	    var scale = Math.min(scaleX, scaleY);
 
-	    ctx.translate(-sys.a * scale + 40, maxY * scale + 20);
+	    ctx.translate(-minY1 * scale + 40, maxY2 * scale + 20);
 	    ctx.strokeStyle = "#000000";
 	    ctx.beginPath();
-	    ctx.moveTo(sys.a * scale, -maxY * scale);
-	    ctx.lineTo(sys.a * scale, -minY * scale);
+	    ctx.moveTo(minY1 * scale, -maxY2 * scale);
+	    ctx.lineTo(minY1 * scale, -minY2 * scale);
 	    ctx.stroke();
 	    ctx.beginPath();
-	    ctx.moveTo(sys.a * scale, -minY * scale);
-	    ctx.lineTo(sys.b * scale, -minY * scale);
+	    ctx.moveTo(minY1 * scale, -minY2 * scale);
+	    ctx.lineTo(maxY1 * scale, -minY2 * scale);
 	    ctx.stroke();
 	    ctx.font = "8px Arial"
 	    ctx.fillStyle = "#000000";
-	    for(var i = 0; i <= sys.n; i++) {
+	    for(var i = minY1; i <= maxY1; i += sys.h) {
 	    	ctx.beginPath()
-	    	ctx.moveTo(x[i] * scale, -minY * scale);
-	    	ctx.lineTo(x[i] * scale, -minY * scale - 5);
+	    	ctx.moveTo(i * scale, -minY2 * scale);
+	    	ctx.lineTo(i * scale, -minY2 * scale - 5);
 	    	ctx.stroke();
 	    	ctx.textAlign = "center";
-	    	ctx.fillText(x[i].toFixed(2), x[i] * scale, -minY * scale + 10);
+	    	ctx.fillText(i.toFixed(2), i * scale, -minY2 * scale + 10);
 	    }
-	    for(var i = minY; i <= maxY; i += sys.h) {
+	    for(var i = minY2; i <= maxY2; i += sys.h) {
 	    	ctx.beginPath()
-	    	ctx.moveTo(sys.a * scale, -i * scale);
-	    	ctx.lineTo(sys.a * scale + 5, -i * scale);
+	    	ctx.moveTo(minY1 * scale, -i * scale);
+	    	ctx.lineTo(minY1 * scale + 5, -i * scale);
 	    	ctx.stroke();
 	    	ctx.textAlign = "right";
-	    	ctx.fillText(i.toFixed(2), sys.a * scale - 10, -i * scale + 3);
+	    	ctx.fillText(i.toFixed(2), minY1 * scale - 10, -i * scale + 3);
 	    }
 	    for(var i = 1; i <= sys.n; i++) {
 	    	ctx.strokeStyle = sys.f1Color;
 	        ctx.beginPath();
-	        ctx.moveTo(x[i - 1] * scale, -y1[i - 1] * scale);
-	        ctx.lineTo(x[i] * scale, -y1[i] * scale);
-	        ctx.stroke();
-	        ctx.strokeStyle = sys.f2Color;
-	        ctx.beginPath();
-	        ctx.moveTo(x[i - 1] * scale, -y2[i - 1] * scale);
-	        ctx.lineTo(x[i] * scale, -y2[i] * scale);
+	        ctx.moveTo(y2[i - 1] * scale, -y1[i - 1] * scale);
+	        ctx.lineTo(y2[i] * scale, -y1[i] * scale);
 	        ctx.stroke();
 	    }
 	}
